@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>肖像権使用同意書ジェネレーター</title>
+<style>
+  :root {
+    --bg: #f4f5f9;
+    --panel: #ffffff;
+    --border: #dfe2ef;
+    --text: #262b3d;
+    --muted: #6b7189;
+    --accent: #c2185b;
+    --accent-dark: #9c1249;
+    --ok-bg: #fce4ec;
+    --locked: #a7abc0;
+    --best: #fff4d6;
+    --warn-bg: #fdecea;
+    --warn-text: #a13d2e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  header {
+    background: linear-gradient(135deg, #d81b60, #880e4f);
+    color: #fff;
+    padding: 32px 20px 26px;
+    text-align: center;
+  }
+  header h1 { margin: 0 0 8px; font-size: 1.55rem; }
+  header p { margin: 0; opacity: .92; font-size: .95rem; }
+  .disclaimer {
+    max-width: 800px; margin: 18px auto 0;
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.4);
+    border-radius: 8px; padding: 10px 14px; font-size: .8rem; text-align: left;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 24px 16px 60px; }
+  section.card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  section.card h2 { margin: 0 0 4px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+  section.card .desc { color: var(--muted); font-size: .85rem; margin: 0 0 14px; }
+  .badge { display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 999px; background: #eee; color: #4a4a4a; font-weight: bold; }
+  .badge.pro { background: #fff1cc; color: #8a6100; }
+
+  label.field { display: block; margin-bottom: 12px; }
+  label.field .lbl { font-size: .83rem; font-weight: bold; }
+  label.field input, label.field select, label.field textarea {
+    width: 100%; margin-top: 5px; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: .92rem; font-family: inherit; background: #fbfbfe;
+  }
+  label.field textarea { resize: vertical; min-height: 50px; }
+  label.check { display: flex; align-items: flex-start; gap: 8px; font-size: .87rem; margin-bottom: 10px; }
+  label.check input { width: auto; margin-top: 3px; }
+  .row2 { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row2 > * { flex: 1; min-width: 180px; }
+  .row3 { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row3 > * { flex: 1; min-width: 140px; }
+
+  .item-tab-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .item-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: #fbfbfe; cursor: pointer; font-size: .85rem; }
+  .item-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .sub-panel { border: 1px solid var(--border); border-radius: 10px; padding: 14px; background: #fdfdfe; margin-top: 8px; }
+
+  .warn-box {
+    background: var(--warn-bg); color: var(--warn-text); border: 1px solid #f0c4bd;
+    border-radius: 8px; padding: 10px 14px; font-size: .82rem; margin: 10px 0;
+  }
+
+  .locked-panel {
+    border: 1px dashed var(--locked); border-radius: 10px; padding: 18px; text-align: center; color: var(--muted); background: #fafafd;
+  }
+  .locked-panel .feat-list { text-align: left; max-width: 480px; margin: 12px auto; font-size: .85rem; padding-left: 1.2em; }
+  .buy-btn {
+    display: inline-block; margin-top: 10px; background: var(--accent); color: #fff; font-weight: bold;
+    padding: 10px 22px; border-radius: 999px; text-decoration: none; font-size: .9rem;
+  }
+  .buy-btn:hover { background: var(--accent-dark); }
+
+  .btn-secondary {
+    background: #fff; border: 1px solid var(--border); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font-size: .82rem; cursor: pointer; min-height: 44px;
+  }
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+  .doc-box {
+    background: #fbfbfe; border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+    margin-top: 14px; font-size: .87rem; white-space: pre-wrap;
+  }
+
+  footer { max-width: 880px; margin: 0 auto; padding: 0 16px 40px; font-size: .76rem; color: var(--muted); }
+  footer .updated { font-weight: bold; }
+
+  .removeSubjectBtn { background: none; border: 1px solid var(--border); border-radius: 6px; color: #d0392b; cursor: pointer; font-size: .78rem; min-width: 44px; min-height: 44px; }
+
+  @media print {
+    body { background: #fff; }
+    header, #client-section, #subject-input-section, #terms-section,
+    #pro-section { display: none !important; }
+    #doc-section { border: none; padding: 0; }
+    #doc-section .desc, #printBtn { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>肖像権使用同意書ジェネレーター</h1>
+  <p>LINEスタンプ・似顔絵オーダーメイド向け — 依頼者・被写体情報を入れるだけで同意書のたたき台を作成</p>
+  <div class="disclaimer">
+    ⚠️ 本ツールは、実在の人物をモデルにしたイラスト・スタンプ制作時に使う「肖像使用に関する承諾書」の一般的なひな形を自動生成するものです。弁護士による法律相談・法律事務(弁護士法第72条)にはあたらず、作成者は弁護士資格を持たない個人開発者です。生成される文書の法的有効性は保証されません。重要な取引や紛争の懸念がある場合、また被写体が著名人・公人にあたる場合は、必ず弁護士等の専門家にご確認のうえご利用ください。
+  </div>
+</header>
+
+<main>
+
+  <section class="card" id="client-section">
+    <h2>① 依頼者・案件情報</h2>
+    <div class="row2">
+      <label class="field">
+        <span class="lbl">依頼者名(制作を依頼する側)</span>
+        <input type="text" id="in-client" placeholder="例) 山田太郎">
+      </label>
+      <label class="field">
+        <span class="lbl">案件名・用途メモ(任意)</span>
+        <input type="text" id="in-project" placeholder="例) LINEスタンプ「〇〇と愉快な仲間たち」">
+      </label>
+    </div>
+  </section>
+
+  <section class="card" id="subject-input-section">
+    <h2>② 被写体(モデル)情報 <span class="badge" id="edition-badge">FREE版: 1名まで</span></h2>
+    <p class="desc">集合写真等で複数人をイラスト化する場合、買い切り版では被写体ごとに情報を分けて登録できます。</p>
+
+    <div class="item-tab-row" id="subjectTabs"></div>
+    <div id="subjectForm"></div>
+  </section>
+
+  <section class="card" id="terms-section">
+    <h2>③ 利用条件(全被写体共通)</h2>
+    <div class="row2">
+      <label class="field">
+        <span class="lbl">用途</span>
+        <select id="in-purpose">
+          <option value="line">LINEスタンプとして制作・販売する</option>
+          <option value="commission">coconala等での受注イラストとして納品する</option>
+          <option value="sns">SNS・ポートフォリオに掲載する</option>
+          <option value="other">その他(下の自由記述欄へ)</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="lbl">用途の補足(任意)</span>
+        <input type="text" id="in-purpose-note" placeholder="例) 本人の依頼によりLINEスタンプ化、店頭では販売しない 等">
+      </label>
+    </div>
+    <div class="row3">
+      <label class="field">
+        <span class="lbl">利用期間</span>
+        <select id="in-period-type">
+          <option value="unlimited">無期限</option>
+          <option value="limited">期限付き</option>
+        </select>
+      </label>
+      <label class="field" id="period-end-field" style="display:none;">
+        <span class="lbl">利用終了日</span>
+        <input type="date" id="in-period-end">
+      </label>
+      <label class="field">
+        <span class="lbl">利用地域</span>
+        <select id="in-region">
+          <option value="domestic">日本国内限定</option>
+          <option value="global">海外を含む(SNS等での公開含む)</option>
+        </select>
+      </label>
+    </div>
+    <div class="row3">
+      <label class="field">
+        <span class="lbl">対価</span>
+        <select id="in-fee-type">
+          <option value="free">無償</option>
+          <option value="paid">有償</option>
+        </select>
+      </label>
+      <label class="field" id="fee-amount-field" style="display:none;">
+        <span class="lbl">対価の金額(円)</span>
+        <input type="number" id="in-fee-amount" min="0" step="100" value="0">
+      </label>
+      <label class="field">
+        <span class="lbl">同意日</span>
+        <input type="date" id="in-agree-date">
+      </label>
+    </div>
+    <label class="check">
+      <input type="checkbox" id="in-allow-modify" checked>
+      <span>イラスト化・デフォルメ・トリミング等、原型を離れた改変を許諾する(通常のイラスト制作では必須の項目です)</span>
+    </label>
+    <label class="field">
+      <span class="lbl">生成AIの学習データとしての二次利用</span>
+      <select id="in-ai-use">
+        <option value="deny">許可しない</option>
+        <option value="allow">許可する</option>
+        <option value="silent">同意書に記載しない</option>
+      </select>
+    </label>
+  </section>
+
+  <section class="card" id="pro-section">
+    <h2>④ 複数被写体対応・保存機能 <span class="badge pro">買い切り版</span></h2>
+    <div class="locked-panel">
+      <p>買い切り版(ダウンロード購入)では、以下の機能が使えます:</p>
+      <ul class="feat-list">
+        <li>被写体を複数人登録し、1つの同意書にまとめて出力(集合写真からのイラスト化等)</li>
+        <li>入力内容をこのブラウザに保存し、案件ごとに呼び出して再利用</li>
+      </ul>
+      <a class="buy-btn" href="#" id="buyLink" target="_blank" rel="noopener">買い切り版を見る(BOOTH)</a>
+    </div>
+  </section>
+
+  <section class="card" id="history-section" style="display:none;">
+    <h2>⑤ 案件の保存</h2>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn-secondary" id="saveBtn">現在の内容をこのブラウザに保存</button>
+      <button class="btn-secondary" id="loadBtn">保存済みの内容を読み込む</button>
+    </div>
+    <p class="desc" id="saveStatus" style="margin:8px 0 0;"></p>
+  </section>
+
+  <section class="card" id="doc-section">
+    <h2>⑥ 生成された同意書</h2>
+    <p class="desc">そのまま印刷・PDF保存して、依頼者・被写体双方の署名欄付きで取り交わせます。</p>
+    <div class="doc-box" id="docBox"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="printBtn">🖨️ 同意書を印刷 / PDF保存</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p><span class="updated">最終更新: 2026年9月時点の判例・実務慣行を参考に作成。</span></p>
+  <p>肖像権は判例上確立した権利名というより、憲法上の人格的利益として保護される考え方です。本ツールは一般的な承諾書のひな形提供に留まり、個別の法的判断は行いません。被写体がタレント等の著名人・公人にあたる場合はパブリシティ権の問題が生じうるため、本ツールの対象外とし、専門家へのご相談を推奨します。</p>
+  <p>本ツールは完全にブラウザ内で動作し、入力した情報はどこにも送信されません(開発者ツールのネットワークタブで通信が発生しないことをご確認いただけます)。</p>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var EDITION = "free"; // "full" で買い切り完全版
+  var MAX_SUBJECTS = EDITION === "full" ? 5 : 1;
+
+  function esc(s) { return (s || "").toString().replace(/[<>&"']/g, function (c) { return { "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  function makeKeyboardClickable(el) {
+    el.tabIndex = 0;
+    el.setAttribute("role", "button");
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); }
+    });
+  }
+
+  function todayStr() {
+    var d = new Date();
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var dd = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + mm + "-" + dd;
+  }
+
+  function newSubject() {
+    return {
+      id: Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+      name: "", relation: "self", ageGroup: "adult",
+      guardianName: "", guardianRelation: "",
+      isPublicFigure: false
+    };
+  }
+
+  var subjects = [newSubject()];
+  var activeSubjectId = subjects[0].id;
+
+  function getActiveSubject() {
+    for (var i = 0; i < subjects.length; i++) if (subjects[i].id === activeSubjectId) return subjects[i];
+    return subjects[0];
+  }
+
+  function renderTabs() {
+    var el = document.getElementById("subjectTabs");
+    el.innerHTML = "";
+    subjects.forEach(function (s, i) {
+      var tab = document.createElement("div");
+      tab.className = "item-tab" + (s.id === activeSubjectId ? " active" : "");
+      tab.textContent = s.name || ("被写体" + (i + 1));
+      tab.addEventListener("click", function () { activeSubjectId = s.id; renderTabs(); renderForm(); renderAll(); });
+      makeKeyboardClickable(tab);
+      el.appendChild(tab);
+    });
+    if (subjects.length < MAX_SUBJECTS) {
+      var add = document.createElement("div");
+      add.className = "item-tab";
+      add.textContent = "+ 被写体を追加";
+      add.addEventListener("click", function () {
+        var ns = newSubject(); subjects.push(ns); activeSubjectId = ns.id; renderTabs(); renderForm(); renderAll();
+      });
+      makeKeyboardClickable(add);
+      el.appendChild(add);
+    } else if (EDITION !== "full") {
+      var lock = document.createElement("div");
+      lock.className = "item-tab";
+      lock.style.opacity = ".5";
+      lock.textContent = "🔒 2人目以降は買い切り版";
+      el.appendChild(lock);
+    }
+  }
+
+  function field(labelText, inputHtml) {
+    return '<label class="field"><span class="lbl">' + labelText + '</span>' + inputHtml + '</label>';
+  }
+
+  function renderForm() {
+    var s = getActiveSubject();
+    var el = document.getElementById("subjectForm");
+
+    var html =
+      field("被写体氏名", '<input id="f-name" value="' + esc(s.name) + '" placeholder="例) 佐藤花子">') +
+      '<div class="row2">' +
+        field("依頼者との関係", '<select id="f-relation">' +
+          '<option value="self"' + (s.relation === "self" ? " selected" : "") + '>依頼者本人がモデル</option>' +
+          '<option value="other"' + (s.relation === "other" ? " selected" : "") + '>依頼者以外がモデル(代理発注)</option>' +
+        '</select>') +
+        field("被写体の年齢区分", '<select id="f-ageGroup">' +
+          '<option value="adult"' + (s.ageGroup === "adult" ? " selected" : "") + '>成人(18歳以上)</option>' +
+          '<option value="minor"' + (s.ageGroup === "minor" ? " selected" : "") + '>未成年(18歳未満)</option>' +
+        '</select>') +
+      '</div>';
+
+    if (s.ageGroup === "minor") {
+      html += '<div class="warn-box">未成年の場合、本人の同意のみでは有効性が争われるおそれがあります。親権者(法定代理人)の氏名・続柄を入力し、署名欄にも親権者の同意を追加してください。</div>';
+      html += '<div class="row2">' +
+        field("親権者(法定代理人)氏名", '<input id="f-guardianName" value="' + esc(s.guardianName) + '" placeholder="例) 佐藤一郎">') +
+        field("続柄", '<input id="f-guardianRelation" value="' + esc(s.guardianRelation) + '" placeholder="例) 父">') +
+      '</div>';
+    }
+
+    html += '<label class="check"><input type="checkbox" id="f-isPublicFigure"' + (s.isPublicFigure ? " checked" : "") + '><span>この被写体はタレント・インフルエンサー等の著名人・公人である</span></label>';
+    if (s.isPublicFigure) {
+      html += '<div class="warn-box">著名人・公人の肖像は「パブリシティ権」(顧客吸引力を利用する権利)の対象になり、一般人向けの本ひな形だけでは不十分な可能性があります。専門家(弁護士)へのご相談を強く推奨します。</div>';
+    }
+
+    el.innerHTML = html;
+
+    Array.prototype.forEach.call(el.querySelectorAll("[id^=f-]"), function (input) {
+      var key = input.id.slice(2);
+      var evt = input.type === "checkbox" ? "change" : "input";
+      input.addEventListener(evt, function () {
+        s[key] = input.type === "checkbox" ? input.checked : input.value;
+        if (key === "name") renderTabs();
+        if (key === "ageGroup" || key === "isPublicFigure") renderForm();
+        renderAll();
+      });
+    });
+  }
+
+  var PURPOSE_LABELS = {
+    line: "LINEスタンプとして制作・販売する",
+    commission: "coconala等での受注イラストとして納品する",
+    sns: "SNS・ポートフォリオに掲載する",
+    other: "その他"
+  };
+
+  function renderDoc() {
+    var client = document.getElementById("in-client").value || "(依頼者名未入力)";
+    var project = document.getElementById("in-project").value;
+    var purpose = document.getElementById("in-purpose").value;
+    var purposeNote = document.getElementById("in-purpose-note").value;
+    var periodType = document.getElementById("in-period-type").value;
+    var periodEnd = document.getElementById("in-period-end").value;
+    var region = document.getElementById("in-region").value;
+    var feeType = document.getElementById("in-fee-type").value;
+    var feeAmount = document.getElementById("in-fee-amount").value;
+    var agreeDate = document.getElementById("in-agree-date").value || todayStr();
+    var allowModify = document.getElementById("in-allow-modify").checked;
+    var aiUse = document.getElementById("in-ai-use").value;
+
+    var lines = [];
+    lines.push("肖像使用に関する承諾書(ひな形)");
+    lines.push("作成日: " + agreeDate);
+    if (project) lines.push("案件名: " + project);
+    lines.push("依頼者(利用者): " + client);
+    lines.push("");
+    lines.push("依頼者は、下記の被写体の容ぼう・姿態等(以下「肖像」という)を、下記の条件でイラスト・スタンプ等の素材として利用することについて、被写体(未成年の場合は親権者)の承諾を得るものとする。");
+    lines.push("");
+
+    subjects.forEach(function (s, i) {
+      lines.push("■ 被写体" + (subjects.length > 1 ? (i + 1) : "") + ": " + (s.name || "(未入力)"));
+      lines.push("・依頼者との関係: " + (s.relation === "self" ? "本人がモデル" : "本人以外がモデル(代理発注)"));
+      if (s.ageGroup === "minor") {
+        lines.push("・被写体は未成年のため、親権者(法定代理人)の同意を要する");
+        lines.push("  親権者氏名: " + (s.guardianName || "(未入力)") + "(続柄: " + (s.guardianRelation || "未入力") + ")");
+      }
+      if (s.isPublicFigure) {
+        lines.push("・【注意】被写体は著名人・公人に該当する旨の申告あり。パブリシティ権に関する専門家確認を別途推奨。");
+      }
+      lines.push("");
+    });
+
+    lines.push("■ 利用条件");
+    lines.push("・用途: " + (PURPOSE_LABELS[purpose] || purpose) + (purposeNote ? "(" + purposeNote + ")" : ""));
+    lines.push("・改変: " + (allowModify ? "イラスト化・デフォルメ・トリミング等の改変を許諾する" : "改変は許諾しない(原型を保持すること)"));
+    lines.push("・生成AI学習データとしての二次利用: " + (aiUse === "allow" ? "許可する" : aiUse === "deny" ? "許可しない" : "本書では取り決めない"));
+    lines.push("・利用期間: " + (periodType === "unlimited" ? "無期限" : "〜" + (periodEnd || "(終了日未入力)") + "まで"));
+    lines.push("・利用地域: " + (region === "domestic" ? "日本国内限定" : "海外を含む(SNS等での公開を含む)"));
+    lines.push("・対価: " + (feeType === "free" ? "無償" : "有償(" + (feeAmount || 0) + "円)"));
+    lines.push("");
+    lines.push("■ 撤回について");
+    lines.push("被写体(または親権者)は、将来に向かって本承諾を撤回することができる。ただし、撤回の時点で既に発行・頒布済みの成果物についてまで、依頼者に回収・使用停止を求めるものではない。");
+    lines.push("");
+    lines.push("■ 署名");
+    lines.push("依頼者: " + client + "　　　　　署名: ______________________");
+    subjects.forEach(function (s, i) {
+      lines.push("被写体" + (subjects.length > 1 ? (i + 1) : "") + "(" + (s.name || "未入力") + "): 署名: ______________________");
+      if (s.ageGroup === "minor") {
+        lines.push("親権者(" + (s.guardianName || "未入力") + "): 署名: ______________________");
+      }
+    });
+    lines.push("");
+    lines.push("同意日: " + agreeDate);
+    lines.push("");
+    lines.push("※本書式は肖像使用に関する一般的なひな形であり、法律相談・法律事務(弁護士法第72条)にはあたりません。作成者は弁護士資格を有しない個人開発者です。内容の法的有効性・完全性を保証するものではありません。被写体が著名人・公人である場合、未成年者を含む場合、海外での利用を伴う場合等、重要な取引や紛争の懸念がある場合は、必ず弁護士等の専門家にご確認のうえご利用ください。");
+
+    document.getElementById("docBox").textContent = lines.join("\n");
+  }
+
+  function renderAll() {
+    renderDoc();
+  }
+
+  document.getElementById("in-client").addEventListener("input", renderAll);
+  document.getElementById("in-project").addEventListener("input", renderAll);
+  document.getElementById("in-purpose").addEventListener("change", renderAll);
+  document.getElementById("in-purpose-note").addEventListener("input", renderAll);
+  document.getElementById("in-region").addEventListener("change", renderAll);
+  document.getElementById("in-agree-date").addEventListener("input", renderAll);
+  document.getElementById("in-allow-modify").addEventListener("change", renderAll);
+  document.getElementById("in-ai-use").addEventListener("change", renderAll);
+
+  document.getElementById("in-period-type").addEventListener("change", function () {
+    document.getElementById("period-end-field").style.display = this.value === "limited" ? "block" : "none";
+    renderAll();
+  });
+  document.getElementById("in-period-end").addEventListener("input", renderAll);
+
+  document.getElementById("in-fee-type").addEventListener("change", function () {
+    document.getElementById("fee-amount-field").style.display = this.value === "paid" ? "block" : "none";
+    renderAll();
+  });
+  document.getElementById("in-fee-amount").addEventListener("input", renderAll);
+
+  document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+
+  document.getElementById("in-agree-date").value = todayStr();
+
+  document.getElementById("edition-badge").textContent = EDITION === "full" ? "買い切り版: 複数被写体対応" : "FREE版: 1名まで";
+  if (EDITION === "full") {
+    document.getElementById("pro-section").style.display = "none";
+    document.getElementById("history-section").style.display = "block";
+  }
+
+  // ============ 保存(買い切り版) ============
+  var SAVE_KEY = "portrait_consent_cases_v1";
+  var saveBtn = document.getElementById("saveBtn");
+  var loadBtn = document.getElementById("loadBtn");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", function () {
+      var data = {
+        client: document.getElementById("in-client").value,
+        project: document.getElementById("in-project").value,
+        purpose: document.getElementById("in-purpose").value,
+        purposeNote: document.getElementById("in-purpose-note").value,
+        periodType: document.getElementById("in-period-type").value,
+        periodEnd: document.getElementById("in-period-end").value,
+        region: document.getElementById("in-region").value,
+        feeType: document.getElementById("in-fee-type").value,
+        feeAmount: document.getElementById("in-fee-amount").value,
+        agreeDate: document.getElementById("in-agree-date").value,
+        allowModify: document.getElementById("in-allow-modify").checked,
+        aiUse: document.getElementById("in-ai-use").value,
+        subjects: subjects
+      };
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+        document.getElementById("saveStatus").textContent = "保存しました(" + new Date().toLocaleString() + ")";
+      } catch (e) {
+        document.getElementById("saveStatus").textContent = "保存に失敗しました(ブラウザの保存容量やプライベートブラウジング設定をご確認ください)。";
+      }
+    });
+    loadBtn.addEventListener("click", function () {
+      var raw;
+      try { raw = localStorage.getItem(SAVE_KEY); } catch (e) { document.getElementById("saveStatus").textContent = "読み込みに失敗しました。"; return; }
+      if (!raw) { document.getElementById("saveStatus").textContent = "保存されたデータがありません。"; return; }
+      try {
+        var data = JSON.parse(raw);
+        document.getElementById("in-client").value = data.client || "";
+        document.getElementById("in-project").value = data.project || "";
+        document.getElementById("in-purpose").value = data.purpose || "line";
+        document.getElementById("in-purpose-note").value = data.purposeNote || "";
+        document.getElementById("in-period-type").value = data.periodType || "unlimited";
+        document.getElementById("in-period-end").value = data.periodEnd || "";
+        document.getElementById("period-end-field").style.display = data.periodType === "limited" ? "block" : "none";
+        document.getElementById("in-region").value = data.region || "domestic";
+        document.getElementById("in-fee-type").value = data.feeType || "free";
+        document.getElementById("in-fee-amount").value = data.feeAmount || 0;
+        document.getElementById("fee-amount-field").style.display = data.feeType === "paid" ? "block" : "none";
+        document.getElementById("in-agree-date").value = data.agreeDate || todayStr();
+        document.getElementById("in-allow-modify").checked = data.allowModify !== false;
+        document.getElementById("in-ai-use").value = data.aiUse || "deny";
+        if (Array.isArray(data.subjects) && data.subjects.length) {
+          subjects = data.subjects.map(function (s) {
+            var base = newSubject();
+            for (var k in base) { if (s && s[k] !== undefined) base[k] = s[k]; }
+            return base;
+          });
+          activeSubjectId = subjects[0].id;
+        }
+        renderTabs(); renderForm(); renderAll();
+        document.getElementById("saveStatus").textContent = "読み込みました。";
+      } catch (e) { document.getElementById("saveStatus").textContent = "読み込みに失敗しました。"; }
+    });
+  }
+
+  renderTabs();
+  renderForm();
+  renderAll();
+})();
+</script>
+</body>
+</html>
